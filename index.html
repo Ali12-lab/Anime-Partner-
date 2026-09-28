@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7c5cd4">
+<title>Anime Partner</title>
+<style>
+:root{
+  --bg:#faf6f2; --card:#ffffff; --text:#242030; --sub:#726b7a;
+  --accent:#e8536e; --accent2:#7c5cd4; --border:#ece3e8; --green:#3fb371; --greenbg:#e6f7ee;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171320; --card:#231d30; --text:#f2ecf7; --sub:#b3a9c2;
+    --accent:#ff7089; --accent2:#a58bef; --border:#362c46; --green:#4fd68a; --greenbg:#173a2a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171320; --card:#231d30; --text:#f2ecf7; --sub:#b3a9c2;
+  --accent:#ff7089; --accent2:#a58bef; --border:#362c46; --green:#4fd68a; --greenbg:#173a2a;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:56px 16px 90px;min-height:100%;}
+.topbar{position:fixed;top:0;left:0;right:0;padding-top:env(safe-area-inset-top,0px);background:var(--card);border-bottom:1px solid var(--border);display:none;align-items:center;justify-content:space-between;padding-left:16px;padding-right:16px;height:56px;z-index:20;}
+.topbar.show{display:flex;}
+.topbar .logo{font-weight:600;font-size:0.95rem;}
+.topbar .icons button{background:none;border:none;font-size:1.2rem;margin-left:10px;cursor:pointer;}
+.screen{display:none;max-width:480px;margin:0 auto;padding-bottom:96px;}
+.screen.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+h1{font-size:1.6rem;margin:6px 0 2px;text-align:center;}
+h2{font-size:1.15rem;margin:0 0 14px;}
+p.sub{color:var(--sub);text-align:center;margin:0 0 22px;font-size:0.92rem;}
+label{font-size:0.85rem;color:var(--sub);display:block;margin:14px 0 6px;}
+input[type=text],input[type=number]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;}
+.btn{width:100%;padding:13px;border:none;border-radius:24px;margin-top:22px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;}
+.btn.ghost{background:none;border:1px solid var(--border);color:var(--text);}
+.err{color:var(--accent);font-size:0.85rem;margin-top:8px;display:none;}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.choice{padding:16px 10px;border-radius:14px;border:1px solid var(--border);background:var(--card);text-align:center;cursor:pointer;font-size:0.95rem;}
+.choice.big{grid-column:1/-1;padding:22px;font-size:1.05rem;font-weight:600;}
+.progress-dots{display:flex;gap:6px;justify-content:center;margin-bottom:18px;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);}
+.dot.active{background:var(--accent);}
+.chip-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.chip{padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:0.85rem;cursor:pointer;}
+.chip.selected{background:var(--accent);border-color:var(--accent);color:#fff;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
+.cover{width:100%;height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;margin-bottom:10px;}
+.card h3{margin:0 0 2px;font-size:1.05rem;}
+.tags{margin-bottom:6px;}
+.tag{display:inline-block;font-size:0.68rem;color:var(--accent2);border:1px solid var(--accent2);padding:2px 7px;border-radius:10px;margin-right:4px;}
+.acclaim{display:inline-block;font-size:0.68rem;color:var(--green);border:1px solid var(--green);padding:2px 7px;border-radius:10px;margin-bottom:6px;}
+.meta{font-size:0.76rem;color:var(--sub);margin-bottom:6px;}
+.desc{font-size:0.88rem;line-height:1.5;margin-bottom:10px;}
+.card-actions{display:flex;gap:8px;}
+.card-actions button{flex:1;padding:9px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:0.78rem;cursor:pointer;}
+.card-actions .add{background:var(--accent);color:#fff;border:none;}
+.card-actions a{flex:1;padding:9px;border-radius:20px;border:1px solid var(--border);text-align:center;color:var(--text);font-size:0.78rem;text-decoration:none;}
+.navbar{position:fixed;bottom:0;left:0;right:0;display:none;background:var(--card);border-top:1px solid var(--border);padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px));}
+.navbar.show{display:flex;}
+.navbtn{flex:1;text-align:center;background:none;border:none;color:var(--sub);font-size:0.75rem;cursor:pointer;}
+.navbtn.active{color:var(--accent);font-weight:600;}
+.ep-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:10px 0;}
+.ep{aspect-ratio:1;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.68rem;cursor:pointer;background:var(--card);}
+.ep.done{background:var(--green);color:#fff;border-color:var(--green);}
+.bar{height:8px;border-radius:6px;background:var(--border);overflow:hidden;margin:8px 0;}
+.bar-fill{height:100%;background:var(--green);}
+.empty{text-align:center;color:var(--sub);margin-top:40px;font-size:0.9rem;}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.top a{font-size:0.8rem;color:var(--sub);cursor:pointer;}
+.foot{text-align:center;color:var(--sub);font-size:0.72rem;margin-top:26px;line-height:1.6;}
+.note-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:18px;color:#fff;font-size:0.85rem;margin:0 8px 8px 0;}
+.note-chip span.x{cursor:pointer;opacity:0.8;font-weight:700;}
+.note-row{display:flex;gap:8px;margin-bottom:16px;}
+.note-row input{flex:1;}
+.note-row button{padding:0 16px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-weight:600;}
+.bubble{position:fixed;bottom:80px;right:16px;background:var(--card);border:1px solid var(--accent);color:var(--text);padding:12px 16px;border-radius:20px;font-size:0.82rem;box-shadow:0 4px 14px rgba(0,0,0,0.15);display:none;align-items:center;gap:8px;z-index:30;cursor:pointer;max-width:240px;}
+.bubble.show{display:flex;}
+.bubble .x{color:var(--sub);font-weight:700;cursor:pointer;padding-left:4px;}
+.qopt{padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--card);margin-bottom:10px;cursor:pointer;font-size:0.92rem;}
+.qopt.correct{background:var(--greenbg);border-color:var(--green);}
+.qopt.wrong{background:#fbe4e4;border-color:var(--accent);}
+.scorebox{text-align:center;padding:30px 0;}
+.scorebox .num{font-size:2.8rem;font-weight:700;color:var(--accent);}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:0.82rem;z-index:50;display:none;max-width:85%;text-align:center;}
+.toast.show{display:block;}
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar">
+  <div class="logo">🎌 Anime Partner</div>
+  <div class="icons">
+    <button onclick="renderNotes();showScreen('s-notes')" aria-label="Notes">📝</button>
+    <button onclick="startTrivia()" aria-label="Trivia">🎯</button>
+    <button onclick="renderPhrases();showScreen('s-phrases')" aria-label="Phrases">🗾</button>
+  </div>
+</div>
+
+<div class="screen active" id="s-welcome">
+  <h1>🎌 Anime Partner</h1>
+  <p class="sub">Your personal anime recommendation companion</p>
+  <label>Your name</label>
+  <input type="text" id="inName" placeholder="Enter your name">
+  <label>Your age</label>
+  <input type="number" id="inAge" placeholder="Enter your age">
+  <p class="err" id="ageErr">Anime Partner is available for users aged 18 and older.</p>
+  <button class="btn" onclick="startApp()">Get started</button>
+  <p class="foot">© 2026 Anime Partner. All rights reserved.<br>Developed by Shin.</p>
+</div>
+
+<div class="screen" id="s-usertype">
+  <h2 id="greet"></h2>
+  <p class="sub">Are you new to anime, or have you watched before?</p>
+  <div class="choice-grid">
+    <div class="choice big" onclick="chooseType('beginner')">🌱 I'm a beginner</div>
+    <div class="choice big" onclick="chooseType('experienced')">🎬 I've watched anime before</div>
+  </div>
+</div>
+
+<div class="screen" id="s-gender">
+  <h2>Let's guess your anime match</h2>
+  <p class="sub">Quick one first - are you male or female?</p>
+  <div class="choice-grid">
+    <div class="choice big" onclick="chooseGender('male')">♂️ Male</div>
+    <div class="choice big" onclick="chooseGender('female')">♀️ Female</div>
+  </div>
+</div>
+
+<div class="screen" id="s-spin">
+  <h2 id="spinTitle">🎰 Spinning...</h2>
+  <div class="card" id="spinCard" style="display:none;">
+    <div class="cover" id="spinCover" style="background:var(--accent);font-size:1rem;">?</div>
+    <h3 id="spinName"></h3>
+    <div class="meta" id="spinAnime"></div>
+  </div>
+  <button class="btn" id="spinContinue" style="display:none;" onclick="afterSpin()">Continue</button>
+</div>
+
+<div class="screen" id="s-quiz">
+  <div class="progress-dots" id="quizDots"></div>
+  <h2 id="quizQ"></h2>
+  <div class="choice-grid" id="quizOptions"></div>
+</div>
+
+<div class="screen" id="s-experienced">
+  <h2>Which genres have you enjoyed before?</h2>
+  <p class="sub">Pick as many as you like</p>
+  <div class="chip-grid" id="genreChips"></div>
+  <button class="btn" onclick="submitExperienced()">Show my recommendations</button>
+</div>
+
+<div class="screen" id="s-results">
+  <div class="top"><h2>Recommended for you</h2><a onclick="reshuffle()">🔄 Refresh</a></div>
+  <div id="resultsList"></div>
+  <button class="btn ghost" onclick="shareApp()">📤 Share with your anime partner</button>
+</div>
+
+<div class="screen" id="s-tracker">
+  <h2>My anime tracker</h2>
+  <div id="trackerList"></div>
+</div>
+
+<div class="screen" id="s-notes">
+  <h2>My notes</h2>
+  <p class="sub">Add anime you've watched or your favorites</p>
+  <div class="note-row">
+    <input type="text" id="noteInput" placeholder="Type an anime name">
+    <button onclick="addNote()">Add</button>
+  </div>
+  <div id="notesList"></div>
+</div>
+
+<div class="screen" id="s-phrases">
+  <h2>Japanese anime phrases</h2>
+  <p class="sub">Common words and phrases you'll hear in anime</p>
+  <div id="phrasesList"></div>
+</div>
+
+<div class="screen" id="s-trivia">
+  <div class="progress-dots" id="triviaDots"></div>
+  <h2 id="triviaQ"></h2>
+  <div id="triviaOptions"></div>
+</div>
+
+<div class="screen" id="s-trivia-result">
+  <div class="scorebox">
+    <p class="sub">Anime knowledge score</p>
+    <div class="num" id="scoreNum">0/10</div>
+    <button class="btn" onclick="startTrivia()">Play again</button>
+    <button class="btn ghost" onclick="showScreen('s-results')">Back to Discover</button>
+  </div>
+</div>
+
+<div class="navbar" id="navbar">
+  <button class="navbtn" id="navDiscover" onclick="showScreen('s-results')">🏠<br>Discover</button>
+  <button class="navbtn" id="navTracker" onclick="renderTracker();showScreen('s-tracker')">📺<br>My List</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="bubble" id="bubble" onclick="startTrivia()">
+  <span>🎯 Wanna check your anime knowledge?</span>
+  <span class="x" onclick="event.stopPropagation();closeBubble()">✕</span>
+</div>
+
+<div class="bubble" id="bubble2" onclick="renderPhrases();showScreen('s-phrases')">
+  <span>🎌 Wanna learn fun anime phrases?</span>
+  <span class="x" onclick="event.stopPropagation();closeBubble2()">✕</span>
+</div>
+
+<div class="bubble" id="bubble3" onclick="showScreen('s-gender')">
+  <span id="bubble3text">💕 Wanna guess your anime wifey?</span>
+  <span class="x" onclick="event.stopPropagation();closeBubble3()">✕</span>
+</div>
+
+<script>
+const ANIME = [
+{n:"Attack on Titan",g:["Action","Drama"],st:"MAPPA / WIT Studio",va:"Yuki Kaji as Eren, Yui Ishikawa as Mikasa",y:2013,se:"Spring",ep:25,r:8.9,sn:4,d:"Humanity fights for survival against man-eating Titans behind crumbling walls."},
+{n:"Demon Slayer",g:["Action","Fantasy"],st:"ufotable",va:"Natsuki Hanae as Tanjiro, Akari Kitou as Nezuko",y:2019,se:"Spring",ep:26,r:8.5,sn:4,d:"A boy becomes a demon slayer to cure his sister and avenge his family."},
+{n:"Jujutsu Kaisen",g:["Action","Supernatural"],st:"MAPPA",va:"Junya Enoki as Yuji, Yuma Uchida as Megumi",y:2020,se:"Fall",ep:24,r:8.6,sn:2,d:"A student swallows a cursed object and joins a secret school fighting curses."},
+{n:"One Piece",g:["Adventure","Comedy"],st:"Toei Animation",va:"Mayumi Tanaka as Luffy, Kazuya Nakai as Zoro",y:1999,se:"Fall",ep:1080,r:8.7,sn:1,d:"A rubber-powered pirate sails the seas chasing the ultimate treasure, still ongoing."},
+{n:"Fullmetal Alchemist: Brotherhood",g:["Adventure","Fantasy"],st:"Bones",va:"Romi Park as Edward, Rie Kugimiya as Alphonse",y:2009,se:"Spring",ep:64,r:9.1,sn:1,d:"Two brothers use alchemy to search for a way to restore their bodies."},
+{n:"Hunter x Hunter",g:["Adventure","Action"],st:"Madhouse",va:"Megumi Han as Gon, Mariya Ise as Killua",y:2011,se:"Fall",ep:148,r:9.0,sn:1,d:"A boy becomes a Hunter to find his father and discovers a vast, dangerous world."},
+{n:"Your Lie in April",g:["Romance","Drama"],st:"A-1 Pictures",va:"Natsuki Hanae as Kousei, Risa Taneda as Kaori",y:2014,se:"Fall",ep:22,r:8.6,sn:1,d:"A piano prodigy rediscovers music and life through a free-spirited violinist."},
+{n:"Toradora!",g:["Romance","Comedy"],st:"J.C.Staff",va:"Kenichi Suzumura as Ryuji, Rie Kugimiya as Taiga",y:2008,se:"Fall",ep:25,r:8.1,sn:1,d:"Two students helping each other with crushes slowly fall for one another instead."},
+{n:"Fruits Basket",g:["Romance","Drama"],st:"TMS Entertainment",va:"Manaka Iwami as Tohru, Nobunaga Shimazaki as Yuki",y:2019,se:"Spring",ep:25,r:8.2,sn:3,d:"An orphaned girl uncovers the secret of a family cursed to turn into zodiac animals."},
+{n:"Konosuba",g:["Comedy","Fantasy"],st:"Studio Deen",va:"Jun Fukushima as Kazuma, Sora Amamiya as Aqua",y:2016,se:"Winter",ep:10,r:8.1,sn:3,d:"A boy reborn in a fantasy world teams up with a useless goddess for comedic chaos."},
+{n:"Gintama",g:["Comedy","Action"],st:"Sunrise",va:"Tomokazu Sugita as Gintoki",y:2006,se:"Spring",ep:201,r:8.9,sn:7,d:"A samurai takes odd jobs in an alien-occupied Edo, mixing comedy with real heart."},
+{n:"Sword Art Online",g:["Fantasy","Action"],st:"A-1 Pictures",va:"Yoshitsugu Matsuoka as Kirito, Haruka Tomatsu as Asuna",y:2012,se:"Summer",ep:25,r:7.2,sn:4,d:"Players get trapped in a VR game where death in-game means death in real life."},
+{n:"Re:Zero",g:["Fantasy","Drama"],st:"White Fox",va:"Yusuke Kobayashi as Subaru",y:2016,se:"Spring",ep:25,r:8.2,sn:2,d:"A boy who can rewind time by dying tries to save the girl he loves in a new world."},
+{n:"Frieren: Beyond Journey's End",g:["Fantasy","Drama"],st:"Madhouse",va:"Atsumi Tanezaki as Frieren",y:2023,se:"Fall",ep:28,r:9.0,sn:1,d:"An elf mage reflects on life and loss long after her hero party's adventure ends."},
+{n:"Steins;Gate",g:["Sci-Fi","Mystery"],st:"White Fox",va:"Mamoru Miyano as Okabe, Asami Imai as Kurisu",y:2011,se:"Spring",ep:24,r:9.0,sn:1,d:"A self-proclaimed mad scientist accidentally invents time travel with dangerous stakes."},
+{n:"Cowboy Bebop",g:["Sci-Fi","Action"],st:"Sunrise",va:"Kouichi Yamadera as Spike",y:1998,se:"Spring",ep:26,r:8.8,sn:1,d:"Bounty hunters drift through space chasing jobs while their pasts catch up with them."},
+{n:"Code Geass",g:["Sci-Fi","Drama"],st:"Sunrise",va:"Jun Fukuyama as Lelouch",y:2006,se:"Fall",ep:25,r:8.7,sn:2,d:"An exiled prince gains a power to command anyone and leads a rebellion against an empire."},
+{n:"Another",g:["Horror","Mystery"],st:"P.A. Works",va:"Yuka Iguchi as Mei",y:2012,se:"Winter",ep:12,r:7.5,sn:1,d:"A transfer student discovers his class is cursed with a chain of mysterious deaths."},
+{n:"Parasyte -the maxim-",g:["Horror","Sci-Fi"],st:"Madhouse",va:"Nobunaga Shimazaki as Shinichi",y:2014,se:"Fall",ep:24,r:8.3,sn:1,d:"A teenager must coexist with an alien parasite that has taken over his right hand."},
+{n:"K-On!",g:["Slice of Life","Comedy"],st:"Kyoto Animation",va:"Aki Toyosaki as Yui",y:2009,se:"Spring",ep:14,r:7.8,sn:2,d:"High school girls form a light music club and bond over songs and tea time."},
+{n:"Barakamon",g:["Slice of Life","Comedy"],st:"Kinema Citrus",va:"Yuuichi Nakamura as Seishuu",y:2014,se:"Summer",ep:12,r:8.3,sn:1,d:"A calligrapher exiled to a rural island rediscovers his art and himself."},
+{n:"Death Note",g:["Mystery","Supernatural"],st:"Madhouse",va:"Mamoru Miyano as Light, Kappei Yamaguchi as L",y:2006,se:"Fall",ep:37,r:8.6,sn:1,d:"A genius student gains a notebook that kills anyone whose name is written in it."},
+{n:"The Promised Neverland",g:["Mystery","Drama"],st:"CloverWorks",va:"Sumire Morohoshi as Emma",y:2019,se:"Winter",ep:12,r:8.5,sn:2,d:"Orphans discover a dark secret about their idyllic home and plan a daring escape."},
+{n:"Haikyuu!!",g:["Sports","Comedy"],st:"Production I.G",va:"Ayumu Murase as Hinata, Kaito Ishikawa as Kageyama",y:2014,se:"Spring",ep:25,r:8.7,sn:4,d:"A short but determined player fights to prove himself on his high school volleyball team."},
+{n:"Blue Lock",g:["Sports","Drama"],st:"8bit",va:"Kazuki Ura as Isagi",y:2022,se:"Fall",ep:24,r:8.2,sn:1,d:"Japan's best young strikers compete in a brutal program to forge one world-class forward."},
+{n:"A Silent Voice",g:["Drama","Romance"],st:"Kyoto Animation",va:"Miyu Irino as Shoya, Saori Hayami as Shoko",y:2016,se:"Movie",ep:1,r:8.9,sn:1,d:"A former bully seeks redemption with the deaf classmate he once tormented."},
+{n:"Violet Evergarden",g:["Drama","Fantasy"],st:"Kyoto Animation",va:"Yui Ishikawa as Violet",y:2018,se:"Winter",ep:13,r:8.7,sn:1,d:"An ex-soldier writes letters for others while slowly learning to understand emotions."},
+{n:"Mob Psycho 100",g:["Supernatural","Comedy"],st:"Bones",va:"Setsuo Itou as Mob",y:2016,se:"Summer",ep:12,r:8.6,sn:3,d:"A powerful psychic boy tries to live a normal life while keeping his emotions in check."},
+{n:"Bleach",g:["Supernatural","Action"],st:"Studio Pierrot",va:"Masakazu Morita as Ichigo",y:2004,se:"Fall",ep:366,r:8.1,sn:2,d:"A teenager gains soul reaper powers and battles evil spirits threatening both worlds."},
+{n:"Noragami",g:["Supernatural","Action"],st:"Bones",va:"Yuki Kaji as Yato",y:2014,se:"Winter",ep:12,r:7.9,sn:2,d:"A minor god takes odd jobs for five yen each while searching for purpose."},
+{n:"Naruto",g:["Adventure","Action"],st:"Studio Pierrot",va:"Junko Takeuchi as Naruto",y:2002,se:"Fall",ep:220,r:8.0,sn:1,d:"A young ninja seeks recognition and dreams of becoming Hokage of his village."},
+{n:"My Hero Academia",g:["Action"],st:"Bones",va:"Daiki Yamashita as Deku, Nobuhiko Okamoto as Bakugo",y:2016,se:"Spring",ep:13,r:8.4,sn:7,d:"In a world where most people have superpowers, a powerless boy trains to become a hero."},
+{n:"One Punch Man",g:["Action","Comedy"],st:"Madhouse",va:"Makoto Furukawa as Saitama",y:2015,se:"Fall",ep:12,r:8.7,sn:2,d:"A hero who can defeat any enemy with one punch struggles with the boredom of being unbeatable."},
+{n:"Tokyo Ghoul",g:["Horror","Action"],st:"Studio Pierrot",va:"Natsuki Hanae as Kaneki",y:2014,se:"Summer",ep:12,r:7.8,sn:4,d:"A college student becomes half-ghoul after a near-fatal encounter and must navigate two worlds."},
+{n:"Vinland Saga",g:["Action","Drama"],st:"Wit Studio / MAPPA",va:"Yuto Uemura as Thorfinn",y:2019,se:"Summer",ep:24,r:8.7,sn:2,d:"A young Viking seeks revenge against his father's killer, then questions the cost of violence."},
+{n:"Chainsaw Man",g:["Action","Horror"],st:"MAPPA",va:"Kikunosuke Toya as Denji",y:2022,se:"Fall",ep:12,r:8.5,sn:1,d:"A devil hunter merges with his pet chainsaw devil and gets pulled into a brutal new life."},
+{n:"Spy x Family",g:["Comedy","Action"],st:"Wit Studio / CloverWorks",va:"Takuya Eguchi as Loid, Atsumi Tanezaki as Anya",y:2022,se:"Spring",ep:25,r:8.6,sn:3,d:"A spy, an assassin and a telepath form a fake family, each hiding their identity from the others."},
+{n:"Dragon Ball Z",g:["Action","Adventure"],st:"Toei Animation",va:"Masako Nozawa as Goku",y:1989,se:"Spring",ep:291,r:8.7,sn:1,d:"Earth's strongest warrior and his allies defend the planet against increasingly powerful threats."},
+{n:"Neon Genesis Evangelion",g:["Sci-Fi","Drama"],st:"Gainax",va:"Megumi Ogata as Shinji",y:1995,se:"Fall",ep:26,r:8.5,sn:1,d:"Teenagers pilot giant biomechanical robots to defend humanity from mysterious beings."},
+{n:"Erased",g:["Mystery","Drama"],st:"A-1 Pictures",va:"Tomoya Maeno as Satoru",y:2016,se:"Winter",ep:12,r:8.3,sn:1,d:"A man who can travel back in time tries to prevent a tragedy from his childhood."},
+{n:"Monster",g:["Mystery","Drama"],st:"Madhouse",va:"Hidenobu Kiuchi as Kenzo Tenma",y:2004,se:"Spring",ep:74,r:8.8,sn:1,d:"A doctor hunts down a dangerous killer he once saved as a boy."},
+{n:"Classroom of the Elite",g:["Mystery","Drama"],st:"Lerche",va:"Shoya Chiba as Ayanokoji",y:2017,se:"Summer",ep:12,r:7.8,sn:3,d:"Students at an elite school secretly compete in a merciless class ranking system."},
+{n:"Free!",g:["Sports","Drama"],st:"Kyoto Animation",va:"Nobunaga Shimazaki as Haruka",y:2013,se:"Summer",ep:12,r:7.5,sn:3,d:"Childhood friends reunite to form a competitive swimming club in high school."},
+{n:"Spirited Away",g:["Fantasy","Adventure"],st:"Studio Ghibli",va:"Rumi Hiiragi as Chihiro",y:2001,se:"Movie",ep:1,r:8.6,sn:1,d:"A girl wandering into a spirit world must work in a bathhouse to free her trapped parents. Won the Academy Award for Best Animated Feature."},
+{n:"Your Name",g:["Romance","Fantasy"],st:"CoMix Wave Films",va:"Ryunosuke Kamiki as Taki, Mone Kamishiraishi as Mitsuha",y:2016,se:"Movie",ep:1,r:8.9,sn:1,d:"Two strangers mysteriously swap bodies and must find each other across time. One of the highest-grossing anime films ever."},
+{n:"Sailor Moon",g:["Fantasy","Action"],st:"Toei Animation",va:"Kotono Mitsuishi as Usagi",y:1992,se:"Spring",ep:46,r:7.8,sn:5,d:"A clumsy schoolgirl transforms into a magical guardian to fight evil alongside her fellow Sailor Guardians."},
+{n:"Dragon Ball",g:["Adventure","Comedy"],st:"Toei Animation",va:"Masako Nozawa as Goku",y:1986,se:"Spring",ep:153,r:8.1,sn:1,d:"A young boy with a monkey tail trains in martial arts while searching for magical wish-granting orbs."},
+{n:"Yu Yu Hakusho",g:["Action","Supernatural"],st:"Studio Pierrot",va:"Nozomu Sasaki as Yusuke",y:1992,se:"Fall",ep:112,r:8.5,sn:1,d:"A delinquent is revived as a spirit detective tasked with keeping demons in check."},
+{n:"Slam Dunk",g:["Sports","Comedy"],st:"Toei Animation",va:"Show Hayami as Sakuragi",y:1993,se:"Fall",ep:101,r:8.6,sn:1,d:"A delinquent joins his school's basketball team to impress a girl and discovers real passion for the sport."},
+{n:"InuYasha",g:["Fantasy","Adventure"],st:"Sunrise",va:"Kappei Yamaguchi as InuYasha",y:2000,se:"Fall",ep:167,r:8.1,sn:1,d:"A modern girl is pulled into feudal Japan and teams up with a half-demon to collect a shattered jewel."},
+{n:"Fairy Tail",g:["Fantasy","Adventure"],st:"A-1 Pictures",va:"Tetsuya Kakihara as Natsu",y:2009,se:"Fall",ep:175,r:7.6,sn:1,d:"A fire-breathing wizard and his guildmates take on magical jobs across a vibrant fantasy world."},
+{n:"Black Clover",g:["Fantasy","Action"],st:"Studio Pierrot",va:"Gakuto Kajiwara as Asta",y:2017,se:"Fall",ep:170,r:8.1,sn:1,d:"A boy born without magic in a magical world fights to become the Wizard King through sheer will."},
+{n:"The Seven Deadly Sins",g:["Fantasy","Action"],st:"A-1 Pictures",va:"Yuuki Kaji as Meliodas",y:2014,se:"Fall",ep:24,r:7.7,sn:4,d:"A princess seeks out a disbanded group of legendary knights to reclaim her kingdom."},
+{n:"Overlord",g:["Fantasy","Action"],st:"Madhouse",va:"Satoshi Hino as Ainz",y:2015,se:"Summer",ep:13,r:7.9,sn:4,d:"A gamer becomes trapped as his own overpowered character in a game-turned-real world."},
+{n:"No Game No Life",g:["Fantasy","Comedy"],st:"Madhouse",va:"Yoshitsugu Matsuoka as Sora",y:2014,se:"Spring",ep:12,r:8.0,sn:1,d:"Two shut-in siblings are transported to a world where everything is decided by games."},
+{n:"Assassination Classroom",g:["Comedy","Action"],st:"Lerche",va:"Ryohei Kimura as Nagisa",y:2015,se:"Winter",ep:22,r:8.1,sn:2,d:"A class of misfit students must assassinate their tentacled, super-powered teacher before he destroys Earth."},
+{n:"Food Wars!",g:["Comedy"],st:"J.C.Staff",va:"Yoshitsugu Matsuoka as Souma",y:2015,se:"Spring",ep:24,r:7.6,sn:5,d:"A young chef enrolls in an elite culinary school known for its brutal cook-off battles."},
+{n:"Rurouni Kenshin",g:["Action","Adventure"],st:"Studio Gallop",va:"Mayo Suzukaze as Kenshin",y:1996,se:"Winter",ep:95,r:7.7,sn:1,d:"A former assassin swears off killing and wanders Japan protecting the weak with a reverse-blade sword."},
+{n:"Yuri!!! on Ice",g:["Sports","Romance"],st:"MAPPA",va:"Toshiyuki Toyonaga as Yuri",y:2016,se:"Fall",ep:12,r:7.8,sn:1,d:"A figure skater regains his confidence under the coaching of his idol turned mentor."},
+{n:"Land of the Lustrous",g:["Fantasy","Sci-Fi"],st:"Orange",va:"Tomoyo Kurosawa as Phos",y:2017,se:"Fall",ep:12,r:8.1,sn:1,d:"Gem-like immortal beings fight mysterious moon dwellers while grappling with identity and purpose."},
+{n:"Akira",g:["Sci-Fi","Action"],st:"Tokyo Movie Shinsha",va:"Mitsuo Iwata as Kaneda",y:1988,se:"Movie",ep:1,r:8.1,sn:1,d:"A biker gang leader confronts a government project that has turned his friend into a psychic menace. A landmark of cyberpunk animation."},
+{n:"Ghost in the Shell",g:["Sci-Fi"],st:"Production I.G",va:"Atsuko Tanaka as Motoko",y:1995,se:"Movie",ep:1,r:8.0,sn:1,d:"A cyborg security officer hunts a mysterious hacker while questioning what makes her human."},
+{n:"Princess Mononoke",g:["Fantasy","Adventure"],st:"Studio Ghibli",va:"Youji Matsuda as Ashitaka",y:1997,se:"Movie",ep:1,r:8.4,sn:1,d:"A cursed prince gets caught between forest spirits and an industrial settlement destroying their home."},
+{n:"Howl's Moving Castle",g:["Fantasy","Romance"],st:"Studio Ghibli",va:"Chieko Baisho as Sophie",y:2004,se:"Movie",ep:1,r:8.2,sn:1,d:"A young woman cursed into an old body finds shelter in a wizard's magical walking castle."},
+{n:"Weathering with You",g:["Romance","Fantasy"],st:"CoMix Wave Films",va:"Kotaro Daigo as Hodaka",y:2019,se:"Movie",ep:1,r:8.1,sn:1,d:"A runaway boy befriends a girl who can control the weather in a rain-soaked Tokyo."},
+{n:"My Neighbor Totoro",g:["Fantasy","Slice of Life"],st:"Studio Ghibli",va:"Noriko Hidaka as Satsuki",y:1988,se:"Movie",ep:1,r:8.1,sn:1,d:"Two sisters befriend gentle forest spirits after moving to the countryside."},
+{n:"Grave of the Fireflies",g:["Drama"],st:"Studio Ghibli",va:"Tsutomu Tatsumi as Seita",y:1988,se:"Movie",ep:1,r:8.5,sn:1,d:"A teenage boy and his little sister struggle to survive in the final months of World War II Japan."},
+{n:"The Girl Who Leapt Through Time",g:["Sci-Fi","Romance"],st:"Madhouse",va:"Riisa Naka as Makoto",y:2006,se:"Movie",ep:1,r:8.0,sn:1,d:"A high schooler gains the ability to leap through time and uses it for increasingly personal reasons."},
+{n:"Wolf Children",g:["Fantasy","Drama"],st:"Studio Chizu",va:"Aoi Miyazaki as Hana",y:2012,se:"Movie",ep:1,r:8.4,sn:1,d:"A young mother raises her two half-wolf children alone after their father's death."},
+{n:"Demon Slayer: Mugen Train",g:["Action","Fantasy"],st:"ufotable",va:"Natsuki Hanae as Tanjiro",y:2020,se:"Movie",ep:1,r:8.4,sn:1,d:"Tanjiro and friends board a train haunted by a powerful demon in this feature-length continuation."},
+{n:"Jujutsu Kaisen 0",g:["Action","Supernatural"],st:"MAPPA",va:"Megumi Ogata as Yuta",y:2021,se:"Movie",ep:1,r:8.5,sn:1,d:"A student cursed by his childhood friend's spirit enrolls in Jujutsu High to learn to control his power."},
+{n:"Suzume",g:["Fantasy","Adventure"],st:"CoMix Wave Films",va:"Nanoka Hara as Suzume",y:2022,se:"Movie",ep:1,r:8.2,sn:1,d:"A girl who can see doors to another realm joins a mysterious traveler to seal disasters across Japan."},
+{n:"Kuroko's Basketball",g:["Sports"],st:"Production I.G",va:"Kenshou Ono as Kuroko",y:2012,se:"Spring",ep:25,r:8.1,sn:3,d:"An unnoticeable player with uncanny passing skill helps a new team reach the top of high school basketball."},
+{n:"Fist of the North Star",g:["Action","Drama"],st:"Toei Animation",va:"Akira Kamiya as Kenshiro",y:1984,se:"Fall",ep:109,r:8.0,sn:1,d:"A martial artist wanders a post-apocalyptic wasteland avenging the wrongs done by rival warlords."},
+{n:"Dr. Stone",g:["Sci-Fi","Adventure"],st:"TMS Entertainment",va:"Yuusuke Kobayashi as Senku",y:2019,se:"Summer",ep:24,r:8.3,sn:4,d:"A brilliant teen uses science to rebuild civilization after humanity is turned to stone for millennia."},
+{n:"Tokyo Revengers",g:["Action","Drama"],st:"LIDENFILMS",va:"Yuuki Shin as Takemichi",y:2021,se:"Spring",ep:24,r:7.9,sn:2,d:"A man travels back in time to save an ex-girlfriend from a tragic gang conflict."},
+{n:"Bungo Stray Dogs",g:["Mystery","Supernatural"],st:"Bones",va:"Yuto Uemura as Atsushi",y:2016,se:"Spring",ep:12,r:7.8,sn:5,d:"Detectives with powers based on famous authors solve cases in a mysterious port city."},
+{n:"The Rising of the Shield Hero",g:["Fantasy","Action"],st:"Kinema Citrus",va:"Kaito Ishikawa as Naofumi",y:2019,se:"Winter",ep:25,r:7.4,sn:4,d:"A betrayed hero rebuilds his reputation using a humble shield in a world of summoned champions."},
+{n:"That Time I Got Reincarnated as a Slime",g:["Fantasy","Comedy"],st:"Eight Bit",va:"Miho Okasaki as Rimuru",y:2018,se:"Fall",ep:24,r:8.2,sn:3,d:"A man reborn as a slime in another world builds a nation of monsters through diplomacy and strength."},
+{n:"Mushoku Tensei",g:["Fantasy","Drama"],st:"Studio Bind",va:"Yumi Uchiyama as Rudeus",y:2021,se:"Winter",ep:23,r:8.2,sn:2,d:"A shut-in is reincarnated into a fantasy world and resolves to live his new life without regrets."},
+{n:"The Devil Is a Part-Timer!",g:["Comedy","Fantasy"],st:"White Fox",va:"Ryouta Ohsaka as Sadao",y:2013,se:"Spring",ep:13,r:7.5,sn:2,d:"A defeated demon lord takes a fast-food job in modern Tokyo while plotting his return to power."},
+{n:"Fate/Zero",g:["Action","Fantasy"],st:"ufotable",va:"Tomokazu Sugita as Waver",y:2011,se:"Fall",ep:25,r:8.3,sn:2,d:"Seven mages summon legendary heroes to fight to the death for a wish-granting relic."},
+{n:"Bocchi the Rock!",g:["Comedy","Slice of Life"],st:"CloverWorks",va:"Yumiri Hanamori as Bocchi",y:2022,se:"Fall",ep:12,r:8.8,sn:1,d:"An anxious girl finds her voice by joining a school band as its guitarist."},
+{n:"Oshi no Ko",g:["Drama","Mystery"],st:"Doga Kobo",va:"Takeo Otsuka as Aqua",y:2023,se:"Spring",ep:11,r:8.6,sn:2,d:"Twins reincarnated as the children of an idol uncover the dark side of the entertainment industry."},
+{n:"The Apothecary Diaries",g:["Mystery","Drama"],st:"Toho / OLM",va:"Aoi Yuuki as Maomao",y:2023,se:"Fall",ep:24,r:8.5,sn:2,d:"A poison-loving apothecary solves mysteries within an ancient, imperial palace."},
+{n:"Kaguya-sama: Love is War",g:["Romance","Comedy"],st:"A-1 Pictures",va:"Aoi Koga as Kaguya, Makoto Furukawa as Miyuki",y:2019,se:"Winter",ep:12,r:8.4,sn:3,d:"Two student council geniuses wage a secret war to be the first to confess their feelings."},
+{n:"Golden Kamuy",g:["Action","Adventure"],st:"Geno Studio",va:"Kenjiro Tsuda as Sugimoto",y:2018,se:"Spring",ep:12,r:7.8,sn:4,d:"A war veteran and an Ainu girl hunt for hidden gold across the wilds of early 1900s Hokkaido."},
+{n:"March Comes in Like a Lion",g:["Drama","Slice of Life"],st:"Shaft",va:"Kengo Kawanishi as Rei",y:2016,se:"Fall",ep:22,r:8.3,sn:2,d:"A young professional shogi player finds warmth and healing through a caring neighborhood family."},
+{n:"Anohana",g:["Drama","Slice of Life"],st:"A-1 Pictures",va:"Miyu Irino as Jinta",y:2011,se:"Spring",ep:11,r:8.4,sn:1,d:"Childhood friends reunite to help the ghost of a girl they lost move on, confronting old wounds."},
+{n:"Higurashi When They Cry",g:["Horror","Mystery"],st:"Studio Deen",va:"Satsuki Yukino as Rena",y:2006,se:"Spring",ep:26,r:7.9,sn:1,d:"A boy moves to a quiet village where each arc unravels a new, bloody twist on the same mystery."},
+{n:"Grand Blue",g:["Comedy"],st:"Zero-G",va:"Yuichiro Umehara as Iori",y:2018,se:"Summer",ep:12,r:8.1,sn:1,d:"A college freshman gets pulled into his uncle's chaotic diving-shop crew and their non-stop antics."},
+{n:"Nichijou",g:["Comedy","Slice of Life"],st:"Kyoto Animation",va:"Satomi Satou as Yuuko",y:2011,se:"Spring",ep:26,r:8.5,sn:1,d:"Absurd, everyday moments spiral into surreal comedy for a group of ordinary students and a robot girl."},
+{n:"Wotakoi: Love is Hard for Otaku",g:["Romance","Comedy"],st:"A-1 Pictures",va:"Yoshitsugu Matsuoka as Hirotaka",y:2018,se:"Spring",ep:11,r:7.6,sn:1,d:"Two otaku coworkers navigate an unconventional office romance built on shared nerdy interests."},
+{n:"Log Horizon",g:["Fantasy","Adventure"],st:"Satelight",va:"Kenji Nojima as Shiroe",y:2013,se:"Fall",ep:25,r:7.7,sn:3,d:"Thousands of players are trapped inside their favorite MMORPG and must build a new society within it."},
+{n:"Death Parade",g:["Mystery","Drama"],st:"Madhouse",va:"Tomoaki Maeno as Decim",y:2015,se:"Winter",ep:12,r:8.1,sn:1,d:"The dead face judgment through deadly games at a mysterious bar between life and the afterlife."}
+];
+
+const QUIZ = [
+{q:"What sounds most fun to you?",opts:[{t:"Epic battles and power",g:["Action","Adventure"]},{t:"Falling in love",g:["Romance"]},{t:"Laughing a lot",g:["Comedy"]},{t:"Solving puzzles",g:["Mystery"]}]},
+{q:"Pick a setting you'd enjoy:",opts:[{t:"A magical world",g:["Fantasy"]},{t:"Space or the future",g:["Sci-Fi"]},{t:"Everyday school life",g:["Slice of Life"]},{t:"A haunted, scary place",g:["Horror"]}]},
+{q:"What kind of story pulls you in?",opts:[{t:"Emotional, makes me cry",g:["Drama"]},{t:"Sports and teamwork",g:["Sports"]},{t:"Gods, spirits and powers",g:["Supernatural"]},{t:"Non-stop action",g:["Action"]}]},
+{q:"How do you like your characters?",opts:[{t:"Strong and heroic",g:["Action","Adventure"]},{t:"Sweet and romantic",g:["Romance"]},{t:"Funny and quirky",g:["Comedy"]},{t:"Mysterious and smart",g:["Mystery"]}]}
+];
+const ALL_GENRES = ["Action","Adventure","Romance","Comedy","Fantasy","Sci-Fi","Horror","Slice of Life","Mystery","Sports","Drama","Supernatural"];
+const COLORS = ["#e8536e","#7c5cd4","#3fb371","#e0a02e","#3b8de0","#c2467a","#2e9e9e","#c96f2e"];
+
+const QUOTE_Q = [
+{q:'Which anime features the catchphrase "Dattebayo"?',a:"Naruto"},
+{q:'"Plus Ultra" is the motto shouted in which anime?',a:"My Hero Academia"},
+{q:'"Kamehameha" is a signature attack in which anime?',a:"Dragon Ball Z"},
+{q:"Which anime's hero dreams of becoming the Pirate King?",a:"One Piece"},
+{q:'Soldiers who "dedicate their hearts" belong to which anime?',a:"Attack on Titan"},
+{q:'The power system called "Nen" appears in which anime?',a:"Hunter x Hunter"},
+{q:'"Cursed energy" and curses are central to which anime?',a:"Jujutsu Kaisen"},
+{q:'"Equivalent Exchange" is a core law in which anime?',a:"Fullmetal Alchemist: Brotherhood"},
+{q:'"Hollows" and "Zanpakuto" are terms from which anime?',a:"Bleach"},
+{q:'A notebook that kills anyone whose name is written in it appears in which anime?',a:"Death Note"},
+{q:'The power called "Geass" lets the hero command anyone in which anime?',a:"Code Geass"},
+{q:'"El Psy Kongroo" is a catchphrase in which anime?',a:"Steins;Gate"},
+{q:'Special sword-fighting "breathing techniques" are used in which anime?',a:"Demon Slayer"},
+{q:'A boy who fuses with a chainsaw devil is the hero of which anime?',a:"Chainsaw Man"},
+{q:'A spy, an assassin and a telepath form a fake family in which anime?',a:"Spy x Family"}
+];
+
+const PHRASES = [
+{jp:"お疲れ様です",ro:"Otsukaresama desu",en:"Thank you for your hard work",br:"otsukare (worn out from effort) + sama (honorific) + desu (to be)"},
+{jp:"いただきます",ro:"Itadakimasu",en:"Said gratefully before eating",br:"itadaku (humble 'to receive') + masu (polite ending)"},
+{jp:"ごちそうさまでした",ro:"Gochisousama deshita",en:"Thank you for the meal",br:"gochisou (feast) + sama (honorific) + deshita (was)"},
+{jp:"がんばって",ro:"Ganbatte",en:"Do your best, good luck",br:"ganbaru (to persevere) + te (request/encouragement form)"},
+{jp:"すごい",ro:"Sugoi",en:"Amazing, incredible",br:"a single adjective expressing awe"},
+{jp:"かわいい",ro:"Kawaii",en:"Cute",br:"a single adjective for cuteness"},
+{jp:"ありがとう",ro:"Arigatou",en:"Thank you",br:"from arigatashi, 'hard to exist' -> gratitude"},
+{jp:"ごめんなさい",ro:"Gomennasai",en:"I'm sorry",br:"gomen (pardon) + nasai (polite request form)"},
+{jp:"大丈夫",ro:"Daijoubu",en:"It's okay, are you okay",br:"dai (great) + joubu (sturdy) -> all is fine"},
+{jp:"うるさい",ro:"Urusai",en:"Shut up, too noisy",br:"an adjective meaning annoyingly loud"},
+{jp:"馬鹿",ro:"Baka",en:"Idiot, fool",br:"a common insult, often said playfully"},
+{jp:"かっこいい",ro:"Kakkoii",en:"Cool, handsome",br:"kakko (form/style) + ii (good)"},
+{jp:"先輩",ro:"Senpai",en:"Senior, upperclassman",br:"sen (before) + hai (companion)"},
+{jp:"後輩",ro:"Kouhai",en:"Junior, underclassman",br:"kou (after) + hai (companion)"},
+{jp:"仲間",ro:"Nakama",en:"Friend, comrade, crewmate",br:"naka (relationship) + ma (space/interval)"},
+{jp:"夢",ro:"Yume",en:"Dream",br:"a single noun for a dream or aspiration"},
+{jp:"力",ro:"Chikara",en:"Power, strength",br:"a single noun for physical or inner power"},
+{jp:"自由",ro:"Jiyuu",en:"Freedom",br:"ji (self) + yuu (reason/cause) -> acting by one's own reason"},
+{jp:"家族",ro:"Kazoku",en:"Family",br:"ka (house) + zoku (tribe/clan)"},
+{jp:"守る",ro:"Mamoru",en:"To protect",br:"a verb meaning to guard or defend someone"},
+{jp:"諦めない",ro:"Akiramenai",en:"Never give up",br:"akirameru (to give up) + nai (negation)"},
+{jp:"一生懸命",ro:"Isshoukenmei",en:"With all one's might",br:"issho (one life) + kenmei (devotion) -> giving everything"},
+{jp:"信じる",ro:"Shinjiru",en:"To believe",br:"a verb meaning to trust or have faith"},
+{jp:"世界",ro:"Sekai",en:"World",br:"se (generation) + kai (boundary/realm)"},
+{jp:"伝説",ro:"Densetsu",en:"Legend",br:"den (transmit) + setsu (tale) -> a story passed down"},
+{jp:"勇気",ro:"Yuuki",en:"Courage",br:"yuu (bravery) + ki (spirit/energy)"},
+{jp:"仲良し",ro:"Nakayoshi",en:"Close friends",br:"naka (relationship) + yoshi (good)"},
+{jp:"助けて",ro:"Tasukete",en:"Help me",br:"tasukeru (to help/save) + te (request form)"},
+{jp:"待って",ro:"Matte",en:"Wait",br:"matsu (to wait) + te (request form)"},
+{jp:"行くぞ",ro:"Ikuzo",en:"Let's go!",br:"iku (to go) + zo (assertive ending, often used by male characters)"},
+{jp:"頑張れ",ro:"Ganbare",en:"Go for it, keep fighting",br:"imperative form of ganbaru (to persevere)"},
+{jp:"お帰りなさい",ro:"Okaerinasai",en:"Welcome home",br:"okaeri (return) + nasai (polite ending)"},
+{jp:"ただいま",ro:"Tadaima",en:"I'm home",br:"tada (just now) + ima (now)"},
+{jp:"おはよう",ro:"Ohayou",en:"Good morning",br:"a shortened, casual morning greeting"},
+{jp:"こんにちは",ro:"Konnichiwa",en:"Hello, good afternoon",br:"a standard daytime greeting"},
+{jp:"こんばんは",ro:"Konbanwa",en:"Good evening",br:"a standard evening greeting"},
+{jp:"さようなら",ro:"Sayounara",en:"Goodbye",br:"a formal farewell, often implying a longer parting"},
+{jp:"はい",ro:"Hai",en:"Yes",br:"a simple affirmative response"},
+{jp:"いいえ",ro:"Iie",en:"No",br:"a simple negative response"},
+{jp:"分かった",ro:"Wakatta",en:"Understood, got it",br:"past tense of wakaru (to understand)"},
+{jp:"マジで",ro:"Majide",en:"Seriously? For real",br:"maji (serious) + de (particle)"},
+{jp:"なんで",ro:"Nande",en:"Why, how come",br:"a casual question word"},
+{jp:"どうして",ro:"Doushite",en:"Why",br:"a more formal question word than nande"},
+{jp:"嘘",ro:"Uso",en:"Lie, no way",br:"used alone as an exclamation of disbelief"},
+{jp:"やめて",ro:"Yamete",en:"Stop it",br:"yameru (to stop) + te (request form)"}
+];
+const POOL_FEMALE = [
+{n:"Mikasa Ackerman",a:"Attack on Titan"},{n:"Nezuko Kamado",a:"Demon Slayer"},{n:"Asuna",a:"Sword Art Online"},
+{n:"Rem",a:"Re:Zero"},{n:"Violet Evergarden",a:"Violet Evergarden"},{n:"Kurisu Makise",a:"Steins;Gate"},
+{n:"Tohru Honda",a:"Fruits Basket"},{n:"Yor Forger",a:"Spy x Family"},{n:"Makima",a:"Chainsaw Man"},
+{n:"Frieren",a:"Frieren: Beyond Journey's End"},{n:"Emma",a:"The Promised Neverland"},{n:"Chihiro",a:"Spirited Away"}
+];
+const POOL_MALE = [
+{n:"Levi Ackerman",a:"Attack on Titan"},{n:"Kirito",a:"Sword Art Online"},{n:"Tanjiro Kamado",a:"Demon Slayer"},
+{n:"Satoru Gojo",a:"Jujutsu Kaisen"},{n:"Subaru Natsuki",a:"Re:Zero"},{n:"Edward Elric",a:"Fullmetal Alchemist: Brotherhood"},
+{n:"Okabe Rintarou",a:"Steins;Gate"},{n:"Loid Forger",a:"Spy x Family"},{n:"Spike Spiegel",a:"Cowboy Bebop"},
+{n:"Yato",a:"Noragami"},{n:"Thorfinn",a:"Vinland Saga"},{n:"Isagi Yoichi",a:"Blue Lock"}
+];
+function genMissingQ(a){
+  const letters = a.n.split('');
+  let idx;
+  do{ idx = Math.floor(Math.random()*letters.length); }while(letters[idx]===' ');
+  const masked = letters.map((c,i)=> i===idx? '_' : c).join('');
+  const wrong = ANIME.filter(x=>x.n!==a.n).sort(()=>0.5-Math.random()).slice(0,3).map(x=>x.n);
+  const opts = [a.n,...wrong].sort(()=>0.5-Math.random());
+  return {q:`Which anime name is this: "${masked}"?`, opts, a:a.n};
+}
+
+let currentBatch = [];
+let state = {name:"",age:0,gender:"",genreScore:{},shownNames:[],trackerList:[],notes:[],bubbleShown:false,bubble2Shown:false,bubble3Shown:false};
+try{ const saved = JSON.parse(localStorage.getItem("animePartner")); if(saved) state = Object.assign(state, saved); }catch(e){}
+
+function save(){ try{ localStorage.setItem("animePartner", JSON.stringify(state)); }catch(e){} }
+const BASE_SCREENS = ['s-welcome','s-usertype','s-quiz','s-experienced','s-results'];
+function showScreen(id, fromPop){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('navDiscover').classList.toggle('active', id==='s-results');
+  document.getElementById('navTracker').classList.toggle('active', id==='s-tracker');
+  window.scrollTo(0,0);
+  if(!fromPop){ try{ if(BASE_SCREENS.includes(id)) history.replaceState({s:id},''); else history.pushState({s:id},''); }catch(e){} }
+  if(id==='s-results' && !state.bubbleShown){ state.bubbleShown=true; save(); setTimeout(()=>{ document.getElementById('bubble').classList.add('show'); },4000); }
+  if(id==='s-results' && !state.bubble3Shown){ state.bubble3Shown=true; save(); setTimeout(()=>{ document.getElementById('bubble3text').textContent = state.gender==='female' ? "\ud83d\udc99 Wanna guess your anime husbando?" : "\ud83d\udc95 Wanna guess your anime wifey?"; document.getElementById('bubble3').classList.add('show'); },9000); }
+  if(id==='s-tracker' && !state.bubble2Shown){ state.bubble2Shown=true; save(); setTimeout(()=>{ document.getElementById('bubble2').classList.add('show'); },3000); }
+}
+function closeBubble(){ document.getElementById('bubble').classList.remove('show'); }
+
+function startApp(){
+  const name = document.getElementById('inName').value.trim();
+  const age = parseInt(document.getElementById('inAge').value,10);
+  const err = document.getElementById('ageErr');
+  if(!name || !age){ err.textContent="Please enter your name and age."; err.style.display='block'; return; }
+  if(age < 18){ err.textContent="Anime Partner is available for users aged 18 and older."; err.style.display='block'; return; }
+  err.style.display='none';
+  state.name = name; state.age = age; save();
+  document.getElementById('greet').textContent = "Nice to meet you, " + name + "!";
+  document.getElementById('topbar').classList.add('show');
+  showScreen('s-usertype');
+}
+
+function chooseGender(g){
+  state.gender = g; save();
+  const pool = g==='male' ? POOL_FEMALE : POOL_MALE;
+  const pick = pool[Math.floor(Math.random()*pool.length)];
+  document.getElementById('spinTitle').textContent = g==='male' ? "💕 Let me guess your anime wifey..." : "💙 Let me guess your anime husbando...";
+  document.getElementById('spinCard').style.display='none';
+  document.getElementById('spinContinue').style.display='none';
+  showScreen('s-spin');
+  setTimeout(()=>{
+    document.getElementById('spinCover').textContent = pick.n[0];
+    document.getElementById('spinName').textContent = pick.n;
+    document.getElementById('spinAnime').textContent = "from " + pick.a;
+    document.getElementById('spinCard').style.display='block';
+    document.getElementById('spinContinue').style.display='block';
+  },1500);
+}
+function afterSpin(){ showScreen('s-results'); }
+function renderPhrases(){
+  const div = document.getElementById('phrasesList');
+  div.innerHTML = PHRASES.map(p=>`<div class="card"><h3>${p.jp}</h3><div class="meta">${p.ro}</div><div class="desc"><b>${p.en}</b></div><div class="meta">${p.br}</div></div>`).join('');
+}
+function closeBubble2(){ document.getElementById('bubble2').classList.remove('show'); }
+function closeBubble3(){ document.getElementById('bubble3').classList.remove('show'); }
+
+let quizIndex = 0;
+function chooseType(type){
+  ALL_GENRES.forEach(g=> state.genreScore[g]=0);
+  if(type==='beginner'){ quizIndex=0; renderQuiz(); showScreen('s-quiz'); }
+  else{ renderChips(); showScreen('s-experienced'); }
+}
+function renderQuiz(){
+  const dots = document.getElementById('quizDots');
+  dots.innerHTML = QUIZ.map((_,i)=>`<div class="dot ${i===quizIndex?'active':''}"></div>`).join('');
+  document.getElementById('quizQ').textContent = QUIZ[quizIndex].q;
+  const optsDiv = document.getElementById('quizOptions');
+  optsDiv.innerHTML='';
+  QUIZ[quizIndex].opts.forEach(o=>{
+    const el = document.createElement('div');
+    el.className='choice big'; el.textContent=o.t;
+    el.onclick=()=>{ o.g.forEach(g=>state.genreScore[g]++); nextQuiz(); };
+    optsDiv.appendChild(el);
+  });
+}
+function nextQuiz(){ quizIndex++; if(quizIndex >= QUIZ.length){ save(); goToResults(); } else renderQuiz(); }
+
+function renderChips(){
+  const div = document.getElementById('genreChips'); div.innerHTML='';
+  ALL_GENRES.forEach(g=>{
+    const c = document.createElement('div'); c.className='chip'; c.textContent=g;
+    c.onclick=()=>{ c.classList.toggle('selected'); };
+    div.appendChild(c);
+  });
+}
+function submitExperienced(){
+  document.querySelectorAll('#genreChips .chip.selected').forEach(c=>{ state.genreScore[c.textContent]+=2; });
+  save(); goToResults();
+}
+
+function scoreAnime(a){ return a.g.reduce((s,g)=> s + (state.genreScore[g]||0), 0); }
+function goToResults(){ state.shownNames=[]; renderResults(); document.getElementById('navbar').classList.add('show'); showScreen('s-results'); }
+function reshuffle(){ state.shownNames=[]; renderResults(); }
+
+function watchTime(ep){
+  const min = ep*24; const h = Math.floor(min/60); const m = min%60;
+  if(h>=24){ const d=Math.floor(h/24), rh=h%24; return `${d}d ${rh}h to binge`; }
+  return `${h}h ${m}m to binge`;
+}
+function acclaim(r){ if(r>=8.8) return "🏆 Fan favorite"; if(r>=8.4) return "⭐ Highly rated"; return "👍 Well liked"; }
+
+function renderResults(){
+  const ranked = ANIME.filter(a=>!state.shownNames.includes(a.n)).sort((a,b)=> scoreAnime(b)-scoreAnime(a));
+  const batch = ranked.slice(0,7);
+  batch.forEach(a=>state.shownNames.push(a.n));
+  currentBatch = batch.map(a=>a.n);
+  const list = document.getElementById('resultsList');
+  if(batch.length===0){ list.innerHTML = '<p class="empty">You have seen all matching anime. Tap Refresh to start over.</p>'; return; }
+  list.innerHTML = batch.map(a=>cardHTML(a)).join('');
+}
+function cardHTML(a){
+  const color = COLORS[a.n.length % COLORS.length];
+  const q = encodeURIComponent(a.n);
+  return `<div class="card">
+    <div class="cover" style="background:${color}">${a.n[0]}</div>
+    <h3>${a.n}</h3>
+    <div class="tags">${a.g.map(g=>`<span class="tag">${g}</span>`).join('')}</div>
+    <div class="acclaim">${acclaim(a.r)}</div>
+    <div class="meta">${a.st} · ${a.se} ${a.y} · ${a.sn===1?'1 season':a.sn+' seasons'} · ${a.ep} episodes · ⭐ ${a.r}/10</div>
+    <div class="meta">⏱ ${watchTime(a.ep)} (at 24 min/ep)</div>
+    <div class="meta">${a.va}</div>
+    <div class="desc">${a.d}</div>
+    <div class="card-actions">
+      <button class="add" onclick="addToTracker('${a.n.replace(/'/g,"\\'")}')">➕ Add to list</button>
+      <button onclick="notInterested('${a.n.replace(/'/g,"\\'")}')">👎 Not for me</button>
+      <a href="https://myanimelist.net/anime.php?q=${q}">🔗 View</a>
+    </div>
+  </div>`;
+}
+function notInterested(name){
+  const next = ANIME.filter(a=>!state.shownNames.includes(a.n)).sort((a,b)=>scoreAnime(b)-scoreAnime(a))[0];
+  if(next) state.shownNames.push(next.n);
+  renderResults();
+}
+function addToTracker(name){
+  if(state.trackerList.find(t=>t.n===name)) return;
+  const a = ANIME.find(x=>x.n===name);
+  state.trackerList.push({n:a.n, total:a.ep, watched: a.ep<=26 ? new Array(a.ep).fill(false) : 0});
+  save();
+}
+function renderTracker(){
+  const div = document.getElementById('trackerList');
+  if(state.trackerList.length===0){ div.innerHTML='<p class="empty">No anime added yet. Add some from Discover!</p>'; return; }
+  div.innerHTML = state.trackerList.map((t,i)=>{
+    if(Array.isArray(t.watched)){
+      const done = t.watched.filter(Boolean).length;
+      const grid = t.watched.map((w,ei)=>`<div class="ep ${w?'done':''}" onclick="toggleEp(${i},${ei})">${ei+1}</div>`).join('');
+      return `<div class="card"><h3>${t.n}</h3><div class="meta">${done} / ${t.total} episodes watched</div>
+        <div class="bar"><div class="bar-fill" style="width:${done/t.total*100}%"></div></div>
+        <div class="ep-grid">${grid}</div></div>`;
+    } else {
+      const pct = Math.min(100, t.watched/t.total*100);
+      return `<div class="card"><h3>${t.n}</h3><div class="meta">${t.watched} / ${t.total} episodes watched</div>
+        <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <input type="number" min="0" max="${t.total}" value="${t.watched}" onchange="setCount(${i},this.value)" style="margin-top:6px;"></div>`;
+    }
+  }).join('');
+}
+function toggleEp(i,ei){ state.trackerList[i].watched[ei] = !state.trackerList[i].watched[ei]; save(); renderTracker(); }
+function setCount(i,val){ state.trackerList[i].watched = Math.max(0, Math.min(state.trackerList[i].total, parseInt(val,10)||0)); save(); renderTracker(); }
+
+function addNote(){
+  const inp = document.getElementById('noteInput');
+  const val = inp.value.trim();
+  if(!val) return;
+  state.notes.push(val); save(); inp.value=''; renderNotes();
+}
+function removeNote(i){ state.notes.splice(i,1); save(); renderNotes(); }
+function renderNotes(){
+  const div = document.getElementById('notesList');
+  if(state.notes.length===0){ div.innerHTML='<p class="empty">No notes yet. Add an anime above!</p>'; return; }
+  div.innerHTML = state.notes.map((n,i)=>`<span class="note-chip" style="background:${COLORS[i%COLORS.length]}">${n}<span class="x" onclick="removeNote(${i})">✕</span></span>`).join('');
+}
+
+let triviaPool = [], triviaIndex = 0, triviaScore = 0;
+function startTrivia(){
+  const missing = ANIME.map(genMissingQ).map(x=>({type:'m',q:x.q,opts:x.opts,a:x.a}));
+  const quotes = QUOTE_Q.map(x=>({type:'q',q:x.q,opts:[x.a,...ANIME.filter(a=>a.n!==x.a).sort(()=>0.5-Math.random()).slice(0,3).map(a=>a.n)].sort(()=>0.5-Math.random()),a:x.a}));
+  triviaPool = [...missing,...quotes].sort(()=>0.5-Math.random()).slice(0,10);
+  triviaIndex=0; triviaScore=0;
+  renderTrivia(); showScreen('s-trivia');
+}
+function renderTrivia(){
+  const dots = document.getElementById('triviaDots');
+  dots.innerHTML = triviaPool.map((_,i)=>`<div class="dot ${i===triviaIndex?'active':''}"></div>`).join('');
+  const item = triviaPool[triviaIndex];
+  document.getElementById('triviaQ').textContent = item.q;
+  const div = document.getElementById('triviaOptions'); div.innerHTML='';
+  item.opts.forEach(o=>{
+    const el = document.createElement('div'); el.className='qopt'; el.textContent=o;
+    el.onclick=()=>answerTrivia(el,o,item.a);
+    div.appendChild(el);
+  });
+}
+function answerTrivia(el,picked,correct){
+  document.querySelectorAll('.qopt').forEach(q=>q.onclick=null);
+  if(picked===correct){ el.classList.add('correct'); triviaScore++; }
+  else{ el.classList.add('wrong'); document.querySelectorAll('.qopt').forEach(q=>{ if(q.textContent===correct) q.classList.add('correct'); }); }
+  setTimeout(()=>{
+    triviaIndex++;
+    if(triviaIndex>=triviaPool.length){ document.getElementById('scoreNum').textContent=`${triviaScore}/${triviaPool.length}`; showScreen('s-trivia-result'); }
+    else renderTrivia();
+  },900);
+}
+
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+function copyFallback(text){
+  const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} document.body.removeChild(ta);
+}
+async function shareApp(){
+  const picks = currentBatch.slice(0,5).join(', ');
+  const text = "My Anime Partner picks: " + (picks||"lots of great anime") + ". Find your next anime with Anime Partner!";
+  try{
+    const cap = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share;
+    if(cap){ await cap.share({title:'Anime Partner', text:text, dialogTitle:'Share with your anime partner'}); return; }
+    if(navigator.share){ await navigator.share({title:'Anime Partner', text:text}); return; }
+    throw new Error('no-share');
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+    try{ await navigator.clipboard.writeText(text); }catch(_){ copyFallback(text); }
+    toast('Copied! Paste it to your anime partner.');
+  }
+}
+
+window.addEventListener('popstate', e=>{ const id = e.state && e.state.s; if(id) showScreen(id,true); });
+
+(function bootstrap(){
+  let first = 's-welcome';
+  if(state.name && state.age>=18){
+    document.getElementById('topbar').classList.add('show');
+    document.getElementById('greet').textContent = "Welcome back, " + state.name + "!";
+    const hasProfile = Object.values(state.genreScore||{}).some(v=>v>0);
+    if(hasProfile){ state.shownNames=[]; renderResults(); document.getElementById('navbar').classList.add('show'); first='s-results'; }
+    else first='s-usertype';
+  }
+  try{ history.replaceState({s:first},''); }catch(e){}
+  showScreen(first,true);
+})();
+</script>
+</body>
+</html>

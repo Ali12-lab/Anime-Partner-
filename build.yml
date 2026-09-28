@@ -1,0 +1,101 @@
+name: Build Anime Partner APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Create the Android project (Capacitor)
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/share@6
+          mkdir -p www
+          cp index.html www/index.html
+          npx cap init "Anime Partner" com.shin.animepartner --web-dir www
+          npx cap add android
+          npx cap sync android
+
+      - name: Apply Anime Partner icon and splash screen
+        run: |
+          pip install pillow
+          python3 - <<'PYEOF'
+          import os, glob
+          from PIL import Image, ImageDraw
+          res = 'android/app/src/main/res'
+          fg = Image.open('logo-foreground-512.png').convert('RGBA')
+          bg = Image.open('logo-background-512.png').convert('RGBA')
+          full = Image.alpha_composite(bg, fg)
+          dens = {'mdpi':1,'hdpi':1.5,'xhdpi':2,'xxhdpi':3,'xxxhdpi':4}
+          def mask(size, shape):
+              m = Image.new('L',(size*4,size*4),0); d = ImageDraw.Draw(m)
+              if shape == 'round': d.ellipse([0,0,size*4-1,size*4-1], fill=255)
+              else: d.rounded_rectangle([0,0,size*4-1,size*4-1], radius=int(size*4*0.22), fill=255)
+              return m.resize((size,size), Image.LANCZOS)
+          for name, s in dens.items():
+              d = f'{res}/mipmap-{name}'; os.makedirs(d, exist_ok=True)
+              a = int(108*s); l = int(48*s)
+              fg.resize((a,a), Image.LANCZOS).save(f'{d}/ic_launcher_foreground.png')
+              bg.resize((a,a), Image.LANCZOS).save(f'{d}/ic_launcher_bg.png')
+              icon = full.resize((l,l), Image.LANCZOS)
+              for fn, shape in (('ic_launcher','square'),('ic_launcher_round','round')):
+                  out = Image.new('RGBA',(l,l),(0,0,0,0)); out.paste(icon,(0,0),mask(l,shape)); out.save(f'{d}/{fn}.png')
+          os.makedirs(f'{res}/mipmap-anydpi-v26', exist_ok=True)
+          adaptive = '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@mipmap/ic_launcher_bg"/>\n    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>\n</adaptive-icon>\n'
+          for fn in ('ic_launcher.xml','ic_launcher_round.xml'):
+              open(f'{res}/mipmap-anydpi-v26/{fn}','w').write(adaptive)
+          for f in glob.glob(res + '/drawable*/splash.png'): os.remove(f)
+          os.makedirs(f'{res}/drawable-nodpi', exist_ok=True)
+          fg.resize((384,384), Image.LANCZOS).save(f'{res}/drawable-nodpi/splash_logo.png')
+          os.makedirs(f'{res}/values', exist_ok=True)
+          open(f'{res}/values/ap_colors.xml','w').write('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ap_brand">#B253AE</color>\n</resources>\n')
+          os.makedirs(f'{res}/drawable', exist_ok=True)
+          open(f'{res}/drawable/splash.xml','w').write('<?xml version="1.0" encoding="utf-8"?>\n<layer-list xmlns:android="http://schemas.android.com/apk/res/android">\n    <item android:drawable="@color/ap_brand"/>\n    <item>\n        <bitmap android:gravity="center" android:src="@drawable/splash_logo"/>\n    </item>\n</layer-list>\n')
+          print('assets generated')
+          PYEOF
+
+      - name: Set version number
+        run: sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
+
+      - name: Build release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Sign APK
+        env:
+          KEYSTORE_B64: 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
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          echo "$KEYSTORE_B64" | base64 -d > ap.jks
+          "$BT/zipalign" -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          "$BT/apksigner" sign --ks ap.jks --ks-pass pass:AnimePartner2026 --key-pass pass:AnimePartner2026 --out AnimePartner.apk aligned.apk
+          "$BT/apksigner" verify AnimePartner.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AnimePartner-apk
+          path: AnimePartner.apk
+
+      - name: Publish APK as a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "build-${{ github.run_number }}" AnimePartner.apk --title "Anime Partner build ${{ github.run_number }}" --notes "Download AnimePartner.apk on your Android phone and install it."
